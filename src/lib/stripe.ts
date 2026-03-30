@@ -1,24 +1,21 @@
-// src/lib/stripe.ts
 import Stripe from 'stripe'
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2026-02-25.clover',
   appInfo: {
     name: 'Ignite Shop',
   },
 })
-```
 
----
+const STRIPE_TIMEOUT_IN_MS = 8000
 
-## 🧭 Fluxo Completo Resumido
-```
-Home (SSG)
-  └─ Usuário clica em produto → Página de produto (SSG + fallback)
-       └─ Clica "Adicionar à sacola" → CartContext.addToCart()
-            └─ Abre CartModal → lista itens
-                 └─ Clica "Finalizar compra"
-                      └─ POST /api/checkout (server)
-                           └─ stripe.checkout.sessions.create()
-                                └─ redirect → Stripe Checkout
-                                     └─ Pagamento → success?session_id=xxx (SSR)
+export async function withStripeTimeout<T>(promise: Promise<T>, timeoutInMs = STRIPE_TIMEOUT_IN_MS) {
+  return Promise.race<T>([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Stripe request timed out.'))
+      }, timeoutInMs)
+    }),
+  ])
+}
