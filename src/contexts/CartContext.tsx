@@ -1,11 +1,11 @@
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { ReactNode, createContext, useContext, useState } from 'react'
 
-interface CartItem {
+export interface CartItem {
   id: string
   name: string
   imageUrl: string
-  price: string        // formatado: "R$ 79,90"
-  priceNumber: number  // em centavos: 7990
+  price: string
+  priceNumber: number
   defaultPriceId: string
   quantity: number
 }
@@ -37,12 +37,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   function addToCart(newItem: CartItem) {
     setCartItems((state) => {
       const itemAlreadyInCart = state.find((item) => item.id === newItem.id)
+
       if (itemAlreadyInCart) {
-        // Incrementa quantidade em vez de duplicar
         return state.map((item) =>
           item.id === newItem.id ? { ...item, quantity: item.quantity + 1 } : item
         )
       }
+
       return [...state, { ...newItem, quantity: 1 }]
     })
   }
@@ -57,12 +58,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ cartItems, cartCount, cartTotal, addToCart, removeFromCart, isInCart, isCartOpen, setIsCartOpen }}
+      value={{
+        cartItems,
+        cartCount,
+        cartTotal,
+        addToCart,
+        removeFromCart,
+        isInCart,
+        isCartOpen,
+        setIsCartOpen,
+      }}
     >
       {children}
     </CartContext.Provider>
   )
 }
 
-// Hook personalizado — boa prática!
 export const useCart = () => useContext(CartContext)
